@@ -1,16 +1,14 @@
 package source
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/saipanno/go-kit/logger"
 	"github.com/saipanno/go-kit/utils"
-)
-
-var (
-	unsplashAccessKey = "RCslKktjieC-C6DNWeglKwnxfQP0P4ogPrEBvL4nVeg"
 )
 
 type UnSplashItem struct {
@@ -40,6 +38,32 @@ func (ui *UnSplashItem) ToItem() (item *LikeItem) {
 }
 
 type UnSplash struct {
+	Username  string
+	AccessKey string
+	DataDir   string
+}
+
+func (us *UnSplash) SetConfig(sc map[string]string) error {
+
+	v, has := sc["username"]
+	if !has {
+		return errors.New("username field is need")
+	}
+	us.Username = v
+
+	v, has = sc["access_key"]
+	if !has {
+		return errors.New("access_key field is need")
+	}
+	us.AccessKey = v
+
+	v, has = sc["data_dir"]
+	if !has {
+		return errors.New("data_dir field is need")
+	}
+	us.DataDir = v
+
+	return nil
 }
 
 func (us *UnSplash) Fetch() (data []*LikeItem, err error) {
@@ -47,7 +71,7 @@ func (us *UnSplash) Fetch() (data []*LikeItem, err error) {
 	var page = 1
 	var pageSize = 25
 	var header = make(http.Header)
-	header.Set("Authorization", fmt.Sprintf("Client-ID %s", unsplashAccessKey))
+	header.Set("Authorization", fmt.Sprintf("Client-ID %s", us.AccessKey))
 
 	option := utils.NewOptions(
 		utils.WithHeader(header),
@@ -58,7 +82,7 @@ func (us *UnSplash) Fetch() (data []*LikeItem, err error) {
 		var likes []*UnSplashItem
 
 		err = utils.GetURLWithJSONResult(
-			fmt.Sprintf("https://api.unsplash.com/users/saipanno/likes?page=%d&per_page=%d", page, pageSize),
+			fmt.Sprintf("https://api.unsplash.com/users/%s/likes?page=%d&per_page=%d", us.Username, page, pageSize),
 			&likes,
 			option,
 		)
@@ -83,5 +107,5 @@ func (us *UnSplash) Fetch() (data []*LikeItem, err error) {
 
 func (us *UnSplash) Download(item *LikeItem) (err error) {
 
-	return utils.DownloadFile(item.RawURL, fmt.Sprintf("../../data/%s.jpg", item.ID))
+	return utils.DownloadFile(item.RawURL, filepath.Join(us.DataDir, item.ID))
 }

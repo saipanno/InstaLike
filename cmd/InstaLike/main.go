@@ -10,6 +10,7 @@ import (
 	"github.com/saipanno/go-kit/logger"
 
 	ilike "github.com/saipanno/InstaLike/InstaLike"
+	"github.com/saipanno/InstaLike/pkg/config"
 	"github.com/saipanno/InstaLike/pkg/utils"
 )
 
@@ -17,7 +18,7 @@ type args struct {
 	cli.Helper
 
 	Version bool   `cli:"version, v" usage:"verion"`
-	Config  string `cli:"conf, c" usage:"specify config file" dft:"./cfg.json"`
+	Config  string `cli:"conf, c" usage:"specify config file" dft:"../../config.json"`
 }
 
 func main() {
@@ -28,6 +29,11 @@ func main() {
 
 		if argv.Version {
 			fmt.Printf("%s\n", utils.VERSION)
+			return
+		}
+
+		err = config.ParseConfig(argv.Config)
+		if err != nil {
 			return
 		}
 
@@ -46,7 +52,8 @@ func main() {
 		<-exit
 
 		logger.Info("received exit signal")
-		manager.Stop()
+
+		err = manager.Stop()
 		return
 	})
 }

@@ -7,6 +7,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	cronv3 "github.com/robfig/cron/v3"
+	"github.com/saipanno/InstaLike/pkg/config"
 	"github.com/saipanno/InstaLike/source"
 	"github.com/saipanno/go-kit/logger"
 	"github.com/saipanno/go-kit/utils"
@@ -17,7 +18,7 @@ type Manager struct {
 	scheduler *cronv3.Cron
 
 	likes   sync.Map
-	sources []source.Plugin
+	sources []source.Source
 
 	wg   sync.WaitGroup
 	exit chan struct{}
@@ -37,7 +38,16 @@ func NewManager() *Manager {
 func (manager *Manager) Start() (err error) {
 
 	// Init Source
-	manager.sources = append(manager.sources, &source.UnSplash{})
+	for key, src := range config.Config().Sources {
+
+		var s source.Source
+		s, err = source.New(key, src)
+		if err != nil {
+			return
+		}
+
+		manager.sources = append(manager.sources, s)
+	}
 
 	// Init DB
 	manager.db, err = sqlx.Connect("mysql", "root:252020@tcp(127.0.0.1:3306)/InstaLike?charset=utf8&parseTime=True&loc=Local")

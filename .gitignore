@@ -19,3 +19,5 @@ go.sum
 
 # Data directory
 data
+
+config.json

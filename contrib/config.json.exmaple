@@ -1,0 +1,21 @@
+{
+    "logger": {
+        "encoder": "console",
+        "level": "debug",
+        "time_format": "default",
+        "report_caller": true,
+        "output": [
+            "stdout"
+        ]
+    },
+    "db": {
+        "uri": "MYSQL DSN"
+    },
+    "sources": {
+        "unsplash": {
+            "username": "USERNAME",
+            "access_key": "AccessKey",
+            "data_dir": "DIR PATH"
+        }
+    }
+}
